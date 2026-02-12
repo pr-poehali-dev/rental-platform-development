@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
@@ -7,10 +7,44 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Icon from '@/components/ui/icon';
+import AuthDialog from '@/components/AuthDialog';
+
+interface User {
+  id: number;
+  email: string;
+  full_name: string;
+  user_type: string;
+}
 
 const Index = () => {
+  const [user, setUser] = useState<User | null>(null);
+  const [sessionToken, setSessionToken] = useState<string | null>(null);
+  const [authDialogOpen, setAuthDialogOpen] = useState(false);
   const [userType, setUserType] = useState<'renter' | 'owner'>('renter');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+
+  useEffect(() => {
+    const token = localStorage.getItem('session_token');
+    const userData = localStorage.getItem('user_data');
+    if (token && userData) {
+      setSessionToken(token);
+      setUser(JSON.parse(userData));
+    }
+  }, []);
+
+  const handleAuthSuccess = (userData: User, token: string) => {
+    setUser(userData);
+    setSessionToken(token);
+    localStorage.setItem('session_token', token);
+    localStorage.setItem('user_data', JSON.stringify(userData));
+  };
+
+  const handleLogout = () => {
+    setUser(null);
+    setSessionToken(null);
+    localStorage.removeItem('session_token');
+    localStorage.removeItem('user_data');
+  };
 
   const categories = [
     { id: 'all', name: 'Все', icon: 'Grid3x3' },
@@ -125,16 +159,33 @@ const Index = () => {
             </nav>
 
             <div className="flex items-center gap-3">
-              <Button variant="ghost" size="icon">
-                <Icon name="Heart" size={20} />
-              </Button>
-              <Button variant="ghost" size="icon">
-                <Icon name="Bell" size={20} />
-              </Button>
-              <Avatar className="cursor-pointer">
-                <AvatarImage src="https://api.dicebear.com/7.x/avataaars/svg?seed=user" />
-                <AvatarFallback>ВЫ</AvatarFallback>
-              </Avatar>
+              {user ? (
+                <>
+                  <Button variant="ghost" size="icon">
+                    <Icon name="Heart" size={20} />
+                  </Button>
+                  <Button variant="ghost" size="icon">
+                    <Icon name="Bell" size={20} />
+                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Avatar className="cursor-pointer">
+                      <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user.email}`} />
+                      <AvatarFallback>{user.full_name[0]}</AvatarFallback>
+                    </Avatar>
+                    <div className="hidden md:block">
+                      <div className="text-sm font-medium">{user.full_name}</div>
+                      <button onClick={handleLogout} className="text-xs text-gray-500 hover:text-primary">
+                        Выйти
+                      </button>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <Button onClick={() => setAuthDialogOpen(true)}>
+                  <Icon name="User" size={18} className="mr-2" />
+                  Войти
+                </Button>
+              )}
             </div>
           </div>
         </div>
@@ -478,6 +529,12 @@ const Index = () => {
           </div>
         </div>
       </footer>
+
+      <AuthDialog
+        open={authDialogOpen}
+        onOpenChange={setAuthDialogOpen}
+        onSuccess={handleAuthSuccess}
+      />
     </div>
   );
 };
