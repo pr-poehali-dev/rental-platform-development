@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -42,6 +43,8 @@ const ItemsGrid = ({
   userType,
   onUserTypeChange
 }: ItemsGridProps) => {
+  const navigate = useNavigate();
+  
   const filteredItems = selectedCategory === 'all' 
     ? items 
     : items.filter(item => item.category === selectedCategory);
@@ -86,7 +89,7 @@ const ItemsGrid = ({
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredItems.map((item) => (
-                <Card key={item.id} className="group hover:shadow-xl transition-all duration-300 overflow-hidden">
+                <Card key={item.id} className="group hover:shadow-xl transition-all duration-300 overflow-hidden cursor-pointer" onClick={() => navigate(`/item/${item.id}`)}>
                   <div className="relative overflow-hidden">
                     <img 
                       src={item.image} 
@@ -127,10 +130,10 @@ const ItemsGrid = ({
                   </CardContent>
 
                   <CardFooter className="p-4 pt-0 flex gap-2">
-                    <Button className="flex-1">
+                    <Button className="flex-1" onClick={(e) => { e.stopPropagation(); navigate(`/item/${item.id}`); }}>
                       Забронировать
                     </Button>
-                    <Button variant="outline" size="icon">
+                    <Button variant="outline" size="icon" onClick={(e) => e.stopPropagation()}>
                       <Icon name="Heart" size={18} />
                     </Button>
                   </CardFooter>
