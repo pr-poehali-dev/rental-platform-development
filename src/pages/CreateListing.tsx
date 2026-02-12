@@ -77,11 +77,13 @@ const CreateListing = () => {
       if (response.ok) {
         navigate('/profile');
       } else {
-        alert('Ошибка при создании объявления');
+        const errorData = await response.text();
+        console.error('Server error:', response.status, errorData);
+        alert(`Ошибка при создании объявления: ${errorData}`);
       }
     } catch (error) {
       console.error('Failed to create listing:', error);
-      alert('Не удалось создать объявление');
+      alert(`Не удалось создать объявление: ${error}`);
     } finally {
       setLoading(false);
     }
