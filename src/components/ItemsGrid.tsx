@@ -152,7 +152,7 @@ const ItemsGrid = ({
                 <p className="text-gray-600">
                   Зарабатывайте на вещах, которые простаивают. Это просто и безопасно!
                 </p>
-                <Button size="lg" className="mt-4">
+                <Button size="lg" className="mt-4" onClick={() => navigate('/create-listing')}>
                   <Icon name="PlusCircle" size={20} className="mr-2" />
                   Добавить объявление
                 </Button>
