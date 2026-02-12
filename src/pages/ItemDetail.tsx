@@ -23,6 +23,7 @@ const ItemDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(false);
   const [dateRange, setDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({
     from: undefined,
     to: undefined,
@@ -82,6 +83,50 @@ const ItemDetail = () => {
   };
 
   const totalPrice = calculateDays() * item.price;
+
+  const handleBooking = async () => {
+    const token = localStorage.getItem('session_token');
+    
+    if (!token) {
+      alert('Пожалуйста, войдите в систему');
+      return;
+    }
+
+    if (!dateRange.from || !dateRange.to) {
+      alert('Выберите даты бронирования');
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const response = await fetch('https://functions.poehali.dev/9129fc38-44a6-41c3-a36b-ec8a54dae1a6', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          item_id: Number(id),
+          start_date: format(dateRange.from, 'yyyy-MM-dd'),
+          end_date: format(dateRange.to, 'yyyy-MM-dd')
+        })
+      });
+
+      if (response.ok) {
+        alert('Бронирование успешно создано!');
+        navigate('/profile');
+      } else {
+        const error = await response.json();
+        alert(error.error || 'Ошибка при бронировании');
+      }
+    } catch (error) {
+      console.error('Booking failed:', error);
+      alert('Не удалось создать бронирование');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50">
@@ -240,9 +285,10 @@ const ItemDetail = () => {
 
                 <Button 
                   className="w-full h-12 text-lg"
-                  disabled={!dateRange.from || !dateRange.to}
+                  disabled={!dateRange.from || !dateRange.to || loading}
+                  onClick={handleBooking}
                 >
-                  Забронировать
+                  {loading ? 'Бронирование...' : 'Забронировать'}
                   <Icon name="Calendar" size={20} className="ml-2" />
                 </Button>
 

@@ -12,12 +12,28 @@ interface User {
   user_type: string;
 }
 
+interface Item {
+  id: number;
+  title: string;
+  category_id: string;
+  price: number;
+  period: string;
+  location: string;
+  rating: number;
+  reviews_count: number;
+  image_url: string;
+  owner: string;
+  condition: string;
+}
+
 const Index = () => {
   const [user, setUser] = useState<User | null>(null);
   const [sessionToken, setSessionToken] = useState<string | null>(null);
   const [authDialogOpen, setAuthDialogOpen] = useState(false);
   const [userType, setUserType] = useState<'renter' | 'owner'>('renter');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [items, setItems] = useState<Item[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const token = localStorage.getItem('session_token');
@@ -26,7 +42,36 @@ const Index = () => {
       setSessionToken(token);
       setUser(JSON.parse(userData));
     }
+    loadItems();
   }, []);
+
+  const loadItems = async () => {
+    try {
+      const response = await fetch('https://functions.poehali.dev/916b95b6-3d7c-485f-996b-df65abfbe772');
+      if (response.ok) {
+        const data = await response.json();
+        const formattedItems = data.map((item: Record<string, unknown>) => ({
+          id: item.id,
+          title: item.title,
+          category: item.category_id,
+          price: item.price,
+          period: item.period,
+          location: item.location || 'Москва',
+          rating: parseFloat(item.rating) || 0,
+          reviews: item.reviews_count || 0,
+          image: item.image_url || 'https://images.unsplash.com/photo-1504148455328-c376907d081c?w=400',
+          owner: item.owner,
+          condition: item.condition || 'Хорошее'
+        }));
+        setItems(formattedItems);
+      }
+    } catch (error) {
+      console.error('Failed to load items:', error);
+      setItems(mockItems);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleAuthSuccess = (userData: User, token: string) => {
     setUser(userData);
@@ -51,7 +96,7 @@ const Index = () => {
     { id: 'camping', name: 'Туризм', icon: 'Tent' },
   ];
 
-  const items = [
+  const mockItems = [
     {
       id: 1,
       title: 'Электродрель Bosch',
@@ -145,14 +190,20 @@ const Index = () => {
         onCategoryClick={setSelectedCategory}
       />
 
-      <ItemsGrid 
-        categories={categories}
-        items={items}
-        selectedCategory={selectedCategory}
-        onCategoryChange={setSelectedCategory}
-        userType={userType}
-        onUserTypeChange={setUserType}
-      />
+      {loading ? (
+        <div className="container mx-auto px-4 py-16 text-center">
+          <p className="text-gray-600">Загрузка объявлений...</p>
+        </div>
+      ) : (
+        <ItemsGrid 
+          categories={categories}
+          items={items}
+          selectedCategory={selectedCategory}
+          onCategoryChange={setSelectedCategory}
+          userType={userType}
+          onUserTypeChange={setUserType}
+        />
+      )}
 
       <Footer />
 

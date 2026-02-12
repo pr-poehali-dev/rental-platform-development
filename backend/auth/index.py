@@ -37,6 +37,7 @@ def handler(event, context):
         action = body.get('action')
         
         dsn = os.environ.get('DATABASE_URL')
+        schema = os.environ.get('MAIN_DB_SCHEMA', 'public')
         if not dsn:
             return {
                 'statusCode': 500,
@@ -45,7 +46,7 @@ def handler(event, context):
                 'isBase64Encoded': False
             }
         
-        conn = psycopg2.connect(dsn)
+        conn = psycopg2.connect(dsn, options=f'-c search_path={schema}')
         cur = conn.cursor(cursor_factory=RealDictCursor)
         
         if action == 'register':

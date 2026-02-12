@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import Icon from '@/components/ui/icon';
@@ -16,6 +17,8 @@ interface HeaderProps {
 }
 
 const Header = ({ user, onLoginClick, onLogout }: HeaderProps) => {
+  const navigate = useNavigate();
+  
   return (
     <header className="border-b bg-white/80 backdrop-blur-md sticky top-0 z-50">
       <div className="container mx-auto px-4 py-4">
@@ -43,12 +46,12 @@ const Header = ({ user, onLoginClick, onLogout }: HeaderProps) => {
                   <Icon name="Bell" size={20} />
                 </Button>
                 <div className="flex items-center gap-2">
-                  <Avatar className="cursor-pointer">
+                  <Avatar className="cursor-pointer" onClick={() => navigate('/profile')}>
                     <AvatarImage src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user.email}`} />
                     <AvatarFallback>{user.full_name[0]}</AvatarFallback>
                   </Avatar>
                   <div className="hidden md:block">
-                    <div className="text-sm font-medium">{user.full_name}</div>
+                    <div className="text-sm font-medium cursor-pointer hover:text-primary" onClick={() => navigate('/profile')}>{user.full_name}</div>
                     <button onClick={onLogout} className="text-xs text-gray-500 hover:text-primary">
                       Выйти
                     </button>
